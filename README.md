@@ -57,7 +57,7 @@ Whether you're new to CI/CD or looking to implement production-grade deployment 
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/<your-username>/AzureDevOpsInsightsDashboard.git
+   git clone https://github.com/Sriharsha9436/AzureDevOpsInsightsDashboard.git
    cd AzureDevopsInsightsDashboard
    ```
 
