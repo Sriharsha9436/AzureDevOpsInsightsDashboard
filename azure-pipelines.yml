@@ -1,0 +1,165 @@
+# This YAML file defines a complete multi-stage CI/CD pipeline for both
+# Terraform infrastructure and the React application.
+
+# Trigger the pipeline on every push to the main branch
+trigger:
+- main
+
+# Define variables for reusability
+variables:
+  - name: azureSubscription
+    value: '<Your Azure Subscription>'
+  - name: appServicePlan
+    value: '<Your App Service Plan Name>'
+  - name: webAppName
+    value: '<Your Web App Name>'
+
+# The entire pipeline is divided into stages that run in a specific order
+stages:
+
+# ==============================================================================
+# STAGE 1: TERRAFORM BUILD - VALIDATE INFRASTRUCTURE AS CODE
+# ==============================================================================
+- stage: TerraformBuild
+  displayName: 'Terraform Plan & Validate'
+  jobs:
+  - job: TerraformPlan
+    displayName: 'Run Terraform Plan'
+    pool:
+      vmImage: 'ubuntu-latest'
+
+    steps:
+    - task: TerraformInstaller@0
+      inputs:
+        terraformVersion: 'latest'
+      displayName: 'Install Terraform'
+
+    - task: TerraformCLI@0
+      inputs:
+        command: 'init'
+        backendType: 'azureRM'
+        backendServiceArm: '$(azureSubscription)'
+        workingDirectory: 'terraform'
+      displayName: 'Terraform Init'
+
+    - task: TerraformCLI@0
+      inputs:
+        command: 'validate'
+        workingDirectory: 'terraform'
+      displayName: 'Terraform Validate'
+
+    - task: TerraformCLI@0
+      inputs:
+        command: 'plan'
+        workingDirectory: 'terraform'
+        environmentServiceName: '$(azureSubscription)'
+      displayName: 'Terraform Plan'
+    
+    # Publish the plan artifact for the release stage
+    - publish: '$(System.DefaultWorkingDirectory)/terraform'
+      artifact: 'terraform_plan'
+      displayName: 'Publish Terraform Plan Artifact'
+
+# ==============================================================================
+# STAGE 2: TERRAFORM RELEASE - DEPLOY INFRASTRUCTURE
+# ==============================================================================
+- stage: TerraformDeploy
+  displayName: 'Terraform Apply'
+  # This stage runs only after the TerraformBuild stage completes successfully
+  dependsOn: TerraformBuild
+  jobs:
+  - deployment: DeployInfrastructure
+    displayName: 'Apply Terraform Changes'
+    pool:
+      vmImage: 'ubuntu-latest'
+
+    # Add a manual approval gate before deploying to production
+    environment: 'production'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: TerraformInstaller@0
+            inputs:
+              terraformVersion: 'latest'
+            displayName: 'Install Terraform'
+
+          - download: current
+            artifact: terraform_plan
+            displayName: 'Download Terraform Plan Artifact'
+          
+          - task: TerraformCLI@0
+            inputs:
+              command: 'apply'
+              workingDirectory: 'terraform'
+              environmentServiceName: '$(azureSubscription)'
+            displayName: 'Terraform Apply'
+
+# ==============================================================================
+# STAGE 3: APPLICATION BUILD - COMPILE REACT APP
+# ==============================================================================
+- stage: ApplicationBuild
+  displayName: 'Build React App'
+  # This stage runs only after the TerraformDeploy stage completes
+  dependsOn: TerraformDeploy
+  jobs:
+  - job: Build
+    displayName: 'Run Build Process'
+    pool:
+      vmImage: 'ubuntu-latest'
+    
+    steps:
+    - task: UseNode@1
+      inputs:
+        version: '18.x'
+      displayName: 'Install Node.js'
+
+    - task: Npm@1
+      inputs:
+        command: 'install'
+        workingDir: 'react-app'
+      displayName: 'Install Dependencies'
+
+    - task: Npm@1
+      inputs:
+        command: 'custom'
+        customCommand: 'run build'
+        workingDir: 'react-app'
+      displayName: 'Build Application'
+    
+    # Publish the built application files
+    - publish: '$(System.DefaultWorkingDirectory)/react-app'
+      artifact: 'react_app_dist'
+      displayName: 'Publish React App Artifact'
+
+# ==============================================================================
+# STAGE 4: APPLICATION RELEASE - DEPLOY REACT APP
+# ==============================================================================
+- stage: ApplicationDeploy
+  displayName: 'Deploy React App'
+  # This stage runs only after the ApplicationBuild stage completes
+  dependsOn: ApplicationBuild
+  jobs:
+  - deployment: DeployApp
+    displayName: 'Deploy to App Service'
+    pool:
+      vmImage: 'ubuntu-latest'
+
+    # Again, add a manual approval gate for production deployment
+    environment: 'production'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - download: current
+            artifact: react_app_dist
+            displayName: 'Download React App Artifact'
+          
+          - task: AzureWebApp@1
+            inputs:
+              azureSubscription: '$(azureSubscription)'
+              appType: 'webAppLinux'
+              appName: '$(webAppName)'
+              package: '$(Pipeline.Workspace)/react_app_dist'
+              startupCommand: 'npm start'
+            displayName: 'Deploy to Azure App Service'
