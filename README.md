@@ -1,4 +1,4 @@
-# - Demo Dashboard Built with React + Vite for DevOps Training Using Azure Resources
+# Demo Dashboard Built with React + Vite for DevOps Training Using Azure Resources
 <div align="center">
 
 ![React](https://img.shields.io/badge/React-18.3.1-61DAFB?style=for-the-badge&logo=react&logoColor=white)
