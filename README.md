@@ -1,5 +1,4 @@
-# AzureDevOps Insights Dashboard
-
+# - Demo Dashboard Built with React + Vite for DevOps Training Using Azure Resources
 <div align="center">
 
 ![React](https://img.shields.io/badge/React-18.3.1-61DAFB?style=for-the-badge&logo=react&logoColor=white)
@@ -29,13 +28,14 @@
 
 ## 🎯 Overview
 
-Welcome to the **AzureDevOps Insights Dashboard** project! This repository provides a comprehensive, beginner-friendly guide for building a modern React.js application and deploying it to Azure using Azure DevOps. 
+Welcome to the DevOps Insights Dashboard Playground — a hands-on, beginner-friendly project designed to help you build a modern React.js application and deploy it using Azure services and DevOps workflows.
 
-Whether you're new to CI/CD or looking to implement production-grade deployment practices, this guide walks you through every step from local development to a robust, automated pipeline.
+Whether you're exploring CI/CD for the first time or aiming to simulate production-grade deployment practices, this guide walks you through every step — from local development to automated pipeline setup — using Azure DevOps in a safe, training-focused environment.
+
 
 ## ✨ Features
 
-- 🚀 **Modern React Stack**: Built with React 18, TypeScript, and Tailwind CSS
+- 🚀 **Modern React Stack**: Built with React 18
 - 🏗️ **Infrastructure as Code**: Terraform templates for Azure resources
 - 🔄 **Complete CI/CD Pipeline**: Automated build, test, and deployment workflows
 - 🛡️ **Production-Ready**: Includes approval gates and security best practices
@@ -57,8 +57,8 @@ Whether you're new to CI/CD or looking to implement production-grade deployment 
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/Sriharsha9436/AzureDevOpsInsightsDashboard.git
-   cd AzureDevopsInsightsDashboard
+   git clone https://github.com/Sriharsha9436/devops-viz-playground.git
+   cd devops-viz-playground
    ```
 
 2. **Install dependencies:**
