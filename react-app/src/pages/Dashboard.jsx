@@ -8,7 +8,7 @@ const modules = [
   'Kubernetes Clusters',
   'Monitoring & Alerts',
   'Secrets Management',
-  'Azure DevOps Boards',
+  'DevOps Boards',
 ];
 
 const Dashboard = () => {
